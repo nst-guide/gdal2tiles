@@ -149,9 +149,9 @@ class GlobalMercator(object):
 
     What are zoom level constants (pixels/meter) for pyramid with EPSG:3857?
 
-      whole region is on top of pyramid (zoom=0) covered by 256x256 pixels tile,
+      whole region is on top of pyramid (zoom=0) covered by 512x512 pixels tile,
       every lower zoom level resolution is always divided by two
-      initialResolution = 20037508.342789244 * 2 / 256 = 156543.03392804062
+      initialResolution = 20037508.342789244 * 2 / 512 = 156543.03392804062
 
     What is the difference between TMS and Google Maps/QuadTree tile name convention?
 
@@ -210,11 +210,11 @@ class GlobalMercator(object):
                  AUTHORITY["EPSG","9001"]]]
     """
 
-    def __init__(self, tile_size=256):
+    def __init__(self, tile_size=512):
         "Initialize the TMS Global Mercator pyramid"
         self.tile_size = tile_size
         self.initialResolution = 2 * math.pi * 6378137 / self.tile_size
-        # 156543.03392804062 for tile_size 256 pixels
+        # 156543.03392804062 for tile_size 512 pixels
         self.originShift = 2 * math.pi * 6378137 / 2.0
         # 20037508.342789244
 
@@ -343,7 +343,7 @@ class GlobalGeodetic(object):
       directly as planar coordinates XY (it is also called Unprojected or Plate
       Carre). We need only scaling to pixel pyramid and cutting to tiles.
       Pyramid has on top level two tiles, so it is not square but rectangle.
-      Area [-180,-90,180,90] is scaled to 512x256 pixels.
+      Area [-180,-90,180,90] is scaled to 512x512 pixels.
       TMS has coordinate origin (for pixels and tiles) in bottom-left corner.
       Rasters are in EPSG:4326 and therefore are compatible with Google Earth.
 
@@ -359,7 +359,7 @@ class GlobalGeodetic(object):
        WMS, KML    Web Clients, Google Earth  TileMapService
     """
 
-    def __init__(self, tmscompatible, tile_size=256):
+    def __init__(self, tmscompatible, tile_size=512):
         self.tile_size = tile_size
         if tmscompatible is not None:
             # Defaults the resolution factor to 0.703125 (2 tiles @ level 0)
@@ -427,7 +427,7 @@ class Zoomify(object):
     ----------------------------------------
     """
 
-    def __init__(self, width, height, tile_size=256, tileformat='jpg'):
+    def __init__(self, width, height, tile_size=512, tileformat='jpg'):
         """Initialization of the Zoomify tile tree"""
 
         self.tile_size = tile_size
@@ -468,7 +468,7 @@ class Zoomify(object):
         """Returns filename for tile with given coordinates"""
 
         tileIndex = x + y * self.tierSizeInTiles[z][0] + self.tileCountUpToTier[z]
-        return os.path.join("TileGroup%.0f" % math.floor(tileIndex / 256),
+        return os.path.join("TileGroup%.0f" % math.floor(tileIndex / 512),
                             "%s-%s-%s.%s" % (z, x, y, self.tileformat))
 
 
@@ -1386,7 +1386,7 @@ class GDAL2Tiles(object):
         self.in_srs_wkt = None
 
         # Tile format
-        self.tile_size = 256
+        self.tile_size = 512
         self.tiledriver = 'PNG'
         self.tileext = 'png'
         self.tmp_dir = tempfile.mkdtemp()
@@ -2246,8 +2246,8 @@ class GDAL2Tiles(object):
                           var ymax = 1 << zoom;
                           var y = ymax - tile.y -1;
                           var tileBounds = new GLatLngBounds(
-                              mercator.fromPixelToLatLng( new GPoint( (tile.x)*256, (tile.y+1)*256 ) , zoom ),
-                              mercator.fromPixelToLatLng( new GPoint( (tile.x+1)*256, (tile.y)*256 ) , zoom )
+                              mercator.fromPixelToLatLng( new GPoint( (tile.x)*512, (tile.y+1)*512 ) , zoom ),
+                              mercator.fromPixelToLatLng( new GPoint( (tile.x+1)*512, (tile.y)*512 ) , zoom )
                           );
                           if (mapBounds.intersects(tileBounds)) {
                               return zoom+"/"+tile.x+"/"+y+".png";
